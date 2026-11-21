@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/img/it8612-hwmon-logo.jpg" alt="it8612-hwmon logo: a fan on a chip inside a hexagon" width="520">
+  <img src="assets/img/it8612-hwmon-logo.jpg" alt="it8612-hwmon logo: a fan on a chip inside a hexagon" width="300">
 </p>
 
 # it8612 — Linux hwmon driver for the ITE IT8612E
