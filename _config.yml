@@ -1,0 +1,14 @@
+# GitHub Pages site (Jekyll): https://enriqueph.github.io/it8612-hwmon/
+# The home page is README.md.
+title: it8612-hwmon
+description: Read-only Linux hwmon driver for the ITE IT8612E Super I/O (temperatures and fan speeds)
+theme: jekyll-theme-midnight
+show_downloads: false
+lang: en
+logo: /assets/img/it8612-hwmon-logo.jpg
+
+# Build files that are not pages
+exclude:
+  - Makefile
+  - project.mk
+  - Kbuild
