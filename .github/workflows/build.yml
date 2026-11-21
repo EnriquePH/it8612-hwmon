@@ -1,0 +1,44 @@
+# Build the module against real kernel headers, with extra warnings, and check the kernel coding style.
+name: build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu:
+    name: Ubuntu (runner kernel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kernel headers
+        run: sudo apt-get update && sudo apt-get install -y "linux-headers-$(uname -r)" build-essential
+      - name: Build
+        run: make build
+      - name: Build with W=1 (fails on any warning)
+        run: make test
+      - name: checkpatch.pl --strict
+        run: |
+          mkdir -p "$RUNNER_TEMP/cp"
+          for f in checkpatch.pl spelling.txt const_structs.checkpatch; do
+            curl -fsSL -o "$RUNNER_TEMP/cp/$f" \
+              "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/$f"
+          done
+          make lint CHECKPATCH="perl $RUNNER_TEMP/cp/checkpatch.pl"
+
+  debian:
+    name: Debian 13 (tested distribution)
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kernel headers
+        run: apt-get update && apt-get install -y linux-headers-amd64 build-essential make
+      - name: Build with W=1 (fails on any warning)
+        run: |
+          KVER="$(ls /lib/modules | head -n 1)"
+          echo "Kernel headers: $KVER"
+          make test KVER="$KVER"

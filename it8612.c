@@ -159,8 +159,13 @@ static int it8612_read(struct device *dev, enum hwmon_sensor_types type,
 		count = env_read(data, EC_REG_FAN_LOW(channel));
 		count |= env_read(data, EC_REG_FAN_HIGH(channel)) << 8;
 		mutex_unlock(&data->lock);
-		/* 0xffff: stopped or not connected; same formula as it87 */
-		*val = (count == 0 || count == 0xffff) ? 0 : 1350000 / (count * 2);
+		/*
+		 * As it87: a count of 0 is not a valid reading (no data);
+		 * 0xffff means the fan is stopped or not connected (0 rpm).
+		 */
+		if (count == 0)
+			return -ENODATA;
+		*val = count == 0xffff ? 0 : 1350000 / (count * 2);
 		return 0;
 	default:
 		return -EOPNOTSUPP;

@@ -6,6 +6,16 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Continuous integration (GitHub Actions): build, `W=1` and `checkpatch.pl --strict` on Ubuntu, and a `W=1` build
+  against the Debian 13 kernel headers, on every push.
+- `CONTRIBUTING.md` (how to report a board) and a Troubleshooting section in the README.
+
+### Fixed
+
+- A fan count of `0` is now reported as no data (`N/A`), as in `it87`, instead of 0 rpm; `0xffff` still reads 0 rpm.
+
 ## [0.1.0] - 2026-11-21
 
 ### Added

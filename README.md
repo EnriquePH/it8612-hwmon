@@ -10,6 +10,7 @@
 [![DKMS](https://img.shields.io/badge/DKMS-supported-success)](#build-and-install)
 [![Chip ID 0x8612](https://img.shields.io/badge/chip%20ID-0x8612-lightgrey)](#the-chip)
 [![Read-only](https://img.shields.io/badge/access-read--only-brightgreen)](#safety)
+[![build](https://github.com/EnriquePH/it8612-hwmon/actions/workflows/build.yml/badge.svg)](https://github.com/EnriquePH/it8612-hwmon/actions/workflows/build.yml)
 
 A small, **read-only** Linux kernel module that reads the temperatures and fan
 speeds of the ITE **IT8612E** Super I/O chip, which no Linux driver supports.
@@ -114,6 +115,15 @@ The meaning of each sensor depends on how the board is wired. For the HP 2B35,
 `/etc/sensors.d/`): temp1 CPU, temp2 Board, temp3 Tctl (relative, not degrees),
 fan1 not connected.
 
+> **Tctl is not a temperature.** On AMD family 15h boards, temp3 carries the CPU's
+> *Tctl*, a control value relative to the throttling limit (70 on the A8-6500)
+> that reads 0 at idle. hwmon reports every `temp*_input` in millidegrees
+> Celsius, so `sensors` prints it with `°C`, but it is **not** degrees: use
+> temp1 (the CPU thermistor) for the real CPU temperature.
+
+A fan count of `0xffff` reads as **0 rpm** (stopped or not connected); a count
+of `0` is not a valid reading and reads as **N/A** (no data), as in `it87`.
+
 ## Safety
 
 The driver **never writes** to the environment controller. The only writes are
@@ -167,13 +177,25 @@ described in `Kbuild`; project settings and targets are in `project.mk`.
 | `force_id` | 0 | Treat another ITE chip ID as an IT8612E (testing only) |
 | `ignore_resource_conflict` | false | Load even if ACPI claims the controller's ports |
 
+## Troubleshooting
+
+| Symptom | Cause and fix |
+| --- | --- |
+| `insmod: ERROR: … No such device` | No IT8612E found at `0x2e`/`0x4e`, or its environment controller is disabled or has no base address: check `sudo dmesg \| grep -i it8612`. |
+| `ports 0x605-0x606 busy (is it87 loaded?)` | Another driver holds the controller: `sudo rmmod it87` (and remove any `options it87 force_id=…` from `/etc/modprobe.d/`). |
+| Fails with a resource conflict | The firmware (ACPI) claims the ports. See the [Disclaimer](#disclaimer) before loading it with `ignore_resource_conflict=1`. |
+| A fan is missing | Its tachometer input is disabled in register `0x13`: nothing is connected there, or the BIOS turned it off. |
+| A fan shows N/A | The chip returned a count of 0: not a valid reading. |
+| Temperatures look swapped or odd | Wiring differs between boards; adapt the labels in `sensors.d/` and please report your board. |
+| The module is gone after a kernel update | Install it with `make dkms-install` so DKMS rebuilds it. |
+
 ## Tested hardware
 
 | Machine | Board / BIOS | CPU | Kernel | Result |
 | --- | --- | --- | --- | --- |
 | HP Pavilion 500-526ns | HP 2B35, AMI 80.06 (2015) | AMD A8-6500 | 6.12 (Debian 13) | temp1 CPU, temp2 board, temp3 Tctl; fan2 and fan3 |
 
-Reports from other boards are welcome. Open an issue with the output of
+Reports from other boards are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). Open an issue with the output of
 `sensors`, the board model and, if possible, a register dump:
 `sudo isadump -y 0x<base+5> 0x<base+6>`.
 
