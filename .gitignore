@@ -1,10 +1,28 @@
+# it8612-hwmon — read-only Linux hwmon driver for the ITE IT8612E Super I/O
+# License: GPL-2.0-or-later
+
+# Kernel module build output (kbuild)
 *.o
 *.ko
+*.ko.xz
+*.ko.zst
 *.mod
 *.mod.c
 *.mod.o
 *.cmd
 .*.cmd
+.*.d
+*.dwo
 Module.symvers
 modules.order
 .tmp_versions/
+.cache.mk
+
+# Editors, language servers and system files
+compile_commands.json
+.cache/
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
