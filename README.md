@@ -1,43 +1,118 @@
 # it8612 — Linux hwmon driver for the ITE IT8612E
 
-A small, **read-only** Linux kernel module for the ITE **IT8612E** Super I/O
-(chip ID `0x8612`). The in-kernel `it87` driver does not know this chip, so
-`sensors-detect` reports it as an unknown ITE chip and there are no fan or board
-temperature readings.
+A small, **read-only** Linux kernel module that reads the temperatures and fan
+speeds of the ITE **IT8612E** Super I/O chip, which no Linux driver supports.
 
-The driver exposes, through the standard hwmon interface (`sensors`,
-`/sys/class/hwmon`, Prometheus node_exporter):
+## The problem
 
-| Attribute | Register | Meaning |
+On boards with an IT8612E, Linux has no fan readings and often no real CPU
+temperature:
+
+- `sensors-detect` finds the chip but cannot name it:
+
+  ```
+  Trying family `ITE'...                                      Yes
+  Found unknown chip with ID 0x8612
+  ```
+
+- The in-kernel [`it87`](https://docs.kernel.org/hwmon/it87.html) driver, and
+  the out-of-tree [frankcrawford/it87](https://github.com/frankcrawford/it87),
+  do not list ID `0x8612`. `modprobe it87` fails with `No such device`.
+- `sensors` shows no fans at all, so a stopped fan goes unnoticed.
+- On AMD family 15h CPUs (A-series APUs such as the A8-6500), the only CPU
+  sensor, `k10temp`, reports **Tctl**: a control value relative to the
+  throttling limit, not degrees. It reads 0 at idle. The real CPU temperature is
+  measured by the board's thermistor, wired to the Super I/O.
+
+A common workaround is `modprobe it87 force_id=0x8603`, which treats the chip as
+the related IT8603E. It works, but it relies on a test-only parameter, the
+driver writes several configuration registers when it loads, and it needs the
+IT8603E entry to keep matching the IT8612E.
+
+This driver identifies the IT8612E by its own ID and exposes only what has
+been verified on real hardware, without writing to the sensor controller.
+
+## The chip
+
+| | |
+| --- | --- |
+| Maker | ITE Tech. Inc. |
+| Type | LPC Super I/O with hardware monitor ("environment controller") |
+| Chip ID | `0x8612` (configuration registers `0x20`–`0x21`) |
+| Revision seen | 4 (register `0x22`) |
+| Configuration ports | `0x2e`/`0x2f` (also probed: `0x4e`/`0x4f`) |
+| Enter key | `0x87 0x01 0x55 0x55` (`… 0xaa` at `0x4e`) |
+| Environment controller | Logical device 4; base address in registers `0x60`–`0x61` (e.g. `0x600`); address/data ports at base + 5 / base + 6 |
+| Family | ITE IT86xx, register map like the IT8603E and IT8613E |
+| Datasheet | Not public (ITE provides it under NDA) |
+| Seen on | OEM desktop boards, e.g. HP 2B35 (HP Pavilion 500-526ns, 2015) |
+
+### Registers used
+
+All in the environment controller, read only:
+
+| Register | Content | Exposed as |
 | --- | --- | --- |
-| `temp1_input` … `temp3_input` | `0x29` … `0x2b` | Temperatures, °C |
-| `fan1_input` … `fan3_input` | `0x0d`–`0x0f` (low), `0x18`–`0x1a` (high) | Fan speeds, rpm (16-bit counters) |
+| `0x29`, `0x2a`, `0x2b` | Temperatures 1–3, signed 8-bit, °C (`0x80` = no sensor) | `temp1_input` … `temp3_input` |
+| `0x0d`, `0x0e`, `0x0f` | Fan 1–3 tachometer, low byte | `fan1_input` … `fan3_input` |
+| `0x18`, `0x19`, `0x1a` | Fan 1–3 tachometer, high byte | (16-bit counters) |
+| `0x13`, bits 4–6 | Fan 1–3 tachometer enabled | hides disabled fans |
 
-Fans whose tachometer is disabled (register `0x13`, bits 4–6) are hidden.
+Fan speed is `1350000 / (2 × count)` rpm, as in `it87`; a count of `0xffff`
+means stopped or not connected.
 
-It **never writes** to the environment controller: the fans stay under the
-chip's own automatic control, as the BIOS set it up. The only writes are the
-standard Super I/O configuration-space sequence (enter key, logical device
-select, exit) used once at load time to find the controller.
+Fan control is left alone. On the tested board the BIOS sets all three PWM
+outputs to the chip's automatic mode (SmartGuardian), driven by temperature 3,
+and the chip keeps controlling the fans by itself.
 
-## Tested hardware
+### How the map was established
 
-| Machine | Board | CPU | Result |
-| --- | --- | --- | --- |
-| HP Pavilion 500-526ns | HP 2B35 (BIOS AMI 80.06) | AMD A8-6500 | temp1 CPU thermistor, temp2 board, temp3 = AMD Tctl; fan2 and fan3 |
+Without a datasheet, the map was checked on an HP 2B35 board by dumping the
+256 registers of the environment controller with `isadump` at rest, under full
+load on all CPU cores and while cooling down:
 
-On that board the register map was established by dumping the 256 registers
-of the environment controller at rest, under full CPU load and while cooling
-down (temp1 26 → 38 → 31 °C; temp3 following `k10temp`'s Tctl exactly; fan
-counters giving about 935 and 850 rpm). The same map is the one `it87` uses for
-the IT8603E, and loading `it87` with `force_id=0x8603` gives the same values.
+| Register | At rest | 90 s at full load | Cooling down | Reading |
+| --- | --- | --- | --- | --- |
+| `0x29` | 26 | 38 | 31 | CPU thermistor, °C |
+| `0x2a` | 28 | 28 | 28 | Board, °C |
+| `0x2b` | 0 | 24 | 4 | Tctl, equal to `k10temp` |
+| `0x19:0x0e` | `0x02d4` | `0x02d4` | `0x02d1` | Fan 2, about 935 rpm |
+| `0x1a:0x0f` | `0x031a` | `0x0318` | `0x031d` | Fan 3, about 850 rpm |
 
-Reports from other boards are welcome: open an issue with the output of
-`sensors` and `sudo isadump -y 0x<base+5> 0x<base+6>`.
+`it87 force_id=0x8603` gives the same values, and so does this driver.
+
+## What it exposes
+
+Through the standard hwmon interface: `sensors`, `/sys/class/hwmon`, and any
+tool built on them, such as Prometheus node_exporter or Grafana.
+
+```
+$ sensors it8612-isa-*
+it8612-isa-0600
+Adapter: ISA adapter
+fan1:           0 RPM
+fan2:         944 RPM
+fan3:         859 RPM
+temp1:        +28.0°C
+temp2:        +31.0°C
+temp3:         +1.0°C
+```
+
+The meaning of each sensor depends on how the board is wired. For the HP 2B35,
+[`sensors.d/hp-2b35.conf`](sensors.d/hp-2b35.conf) labels them (copy it to
+`/etc/sensors.d/`): temp1 CPU, temp2 Board, temp3 Tctl (relative, not degrees),
+fan1 not connected.
+
+## Safety
+
+The driver **never writes** to the environment controller. The only writes are
+the standard Super I/O configuration-space sequence used once at load time to
+find the controller (enter key, logical device select, exit), the same one
+`sensors-detect` and `it87` use. It does not touch fan speed, PWM or alarms.
 
 ## Build and install
 
-Requirements: the kernel headers and, for automatic rebuilds on kernel updates,
+Requirements: kernel headers and, for automatic rebuilds on kernel updates,
 DKMS. On Debian/Ubuntu:
 
 ```bash
@@ -53,18 +128,18 @@ sudo insmod ./it8612.ko
 sensors it8612-isa-*
 ```
 
-Install with DKMS and load at boot:
+Install with DKMS and load it at boot:
 
 ```bash
 sudo make dkms-install
 echo it8612 | sudo tee /etc/modules-load.d/it8612.conf
 ```
 
-Remove: `sudo make dkms-remove` and delete `/etc/modules-load.d/it8612.conf`.
+If you used the `it87 force_id` workaround, remove its configuration (for
+example the `options it87 force_id=…` line in `/etc/modprobe.d/`).
 
-Labels depend on how each board wires the sensors. An example for the HP 2B35
-is in [`sensors.d/hp-2b35.conf`](sensors.d/hp-2b35.conf) (copy it to
-`/etc/sensors.d/`).
+Uninstall: `sudo make dkms-remove` and delete
+`/etc/modules-load.d/it8612.conf`.
 
 ## Module parameters
 
@@ -73,11 +148,21 @@ is in [`sensors.d/hp-2b35.conf`](sensors.d/hp-2b35.conf) (copy it to
 | `force_id` | 0 | Treat another ITE chip ID as an IT8612E (testing only) |
 | `ignore_resource_conflict` | false | Load even if ACPI claims the controller's ports |
 
+## Tested hardware
+
+| Machine | Board / BIOS | CPU | Kernel | Result |
+| --- | --- | --- | --- | --- |
+| HP Pavilion 500-526ns | HP 2B35, AMI 80.06 (2015) | AMD A8-6500 | 6.12 (Debian 13) | temp1 CPU, temp2 board, temp3 Tctl; fan2 and fan3 |
+
+Reports from other boards are welcome. Open an issue with the output of
+`sensors`, the board model and, if possible, a register dump:
+`sudo isadump -y 0x<base+5> 0x<base+6>`.
+
 ## Not supported (yet)
 
-- PWM duty and fan control: read-only by design; the PWM scale is not confirmed.
-- Voltages: the BIOS of the tested board sets no limits and their scaling is
-  unknown.
+- PWM duty cycle and fan control: read-only by design, and the PWM scale is not
+  confirmed.
+- Voltages: their scaling is unknown, and the tested BIOS sets no limits.
 
 ## License
 
