@@ -1,5 +1,12 @@
 # it8612 — Linux hwmon driver for the ITE IT8612E
 
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
+[![Platform: Linux](https://img.shields.io/badge/platform-Linux-informational?logo=linux&logoColor=white)](https://docs.kernel.org/hwmon/)
+[![Tested on kernel 6.12](https://img.shields.io/badge/tested%20on-kernel%206.12-success)](#tested-hardware)
+[![DKMS](https://img.shields.io/badge/DKMS-supported-success)](#build-and-install)
+[![Chip ID 0x8612](https://img.shields.io/badge/chip%20ID-0x8612-lightgrey)](#the-chip)
+[![Read-only](https://img.shields.io/badge/access-read--only-brightgreen)](#safety)
+
 A small, **read-only** Linux kernel module that reads the temperatures and fan
 speeds of the ITE **IT8612E** Super I/O chip, which no Linux driver supports.
 
@@ -10,7 +17,7 @@ temperature:
 
 - `sensors-detect` finds the chip but cannot name it:
 
-  ```
+  ```text
   Trying family `ITE'...                                      Yes
   Found unknown chip with ID 0x8612
   ```
@@ -86,7 +93,7 @@ load on all CPU cores and while cooling down:
 Through the standard hwmon interface: `sensors`, `/sys/class/hwmon`, and any
 tool built on them, such as Prometheus node_exporter or Grafana.
 
-```
+```text
 $ sensors it8612-isa-*
 it8612-isa-0600
 Adapter: ISA adapter
