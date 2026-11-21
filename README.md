@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/img/it8612-hwmon-logo.jpg" alt="it8612-hwmon logo: a fan on a chip inside a hexagon" width="520">
+</p>
+
 # it8612 — Linux hwmon driver for the ITE IT8612E
 
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
@@ -212,3 +216,5 @@ The metadata is in [`CITATION.cff`](CITATION.cff); on GitHub, use
 
 GPL-2.0-or-later (see [`LICENSE`](LICENSE)). Super I/O access follows
 `drivers/hwmon/it87.c` from the Linux kernel.
+
+The logo (`assets/img/it8612-hwmon-logo.jpg`) was generated with Google Gemini.
