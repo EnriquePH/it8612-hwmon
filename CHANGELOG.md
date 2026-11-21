@@ -6,10 +6,6 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
-### Changed
-
-- Build with `make build` (plain `make` now lists the targets); the kbuild part moved to `Kbuild`.
-
 ## [0.1.0] - 2026-11-21
 
 ### Added
@@ -18,3 +14,8 @@ All notable changes to this project are listed here. The format follows
   `fan1_input`–`fan3_input`, found through the Super I/O configuration space; disabled tachometers are hidden.
 - DKMS support (`dkms.conf`, `make dkms-install`, `make dkms-remove`).
 - Sensor labels for the HP 2B35 board (`sensors.d/hp-2b35.conf`).
+- Build with `make build` (`make` lists the targets: `lint` runs `checkpatch.pl`, `test` builds with `W=1`); the
+  kernel build is described in `Kbuild`.
+
+[Unreleased]: https://github.com/EnriquePH/it8612-hwmon/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/EnriquePH/it8612-hwmon/releases/tag/v0.1.0
