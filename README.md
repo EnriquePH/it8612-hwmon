@@ -179,7 +179,36 @@ Reports from other boards are welcome. Open an issue with the output of
   confirmed.
 - Voltages: their scaling is unknown, and the tested BIOS sets no limits.
 
+## Disclaimer
+
+This driver is provided **as is, without any warranty**, as stated in sections
+11 and 12 of the [GNU General Public License](LICENSE): you use it at your own
+risk, and the authors are not liable for any damage, data loss or hardware
+failure that may result. In particular:
+
+- It has been tested on **one board only** (see [Tested hardware](#tested-hardware)).
+  Other boards may wire the IT8612E differently, so the readings may be wrong
+  or mislabelled.
+- Loading it writes the standard Super I/O configuration sequence (see
+  [Safety](#safety)). This is what `sensors-detect` and `it87` do too, but on
+  some systems the firmware (ACPI) also uses these ports: the driver refuses
+  to load in that case unless `ignore_resource_conflict` is set, and setting it
+  is at your own risk.
+- `force_id` makes the driver treat another chip as an IT8612E. Use it only for
+  testing, on a chip whose register map you have checked.
+- The driver does not control the fans or protect the hardware: do not rely on
+  it alone to detect overheating.
+
+If something looks wrong, unload it (`sudo rmmod it8612`) and open an issue
+with the output of `sensors` and `dmesg`.
+
+## Citation
+
+If you use this driver in research, teaching or other work, please cite it.
+The metadata is in [`CITATION.cff`](CITATION.cff); on GitHub, use
+**"Cite this repository"** in the sidebar to get APA or BibTeX.
+
 ## License
 
-GPL-2.0-or-later. Super I/O access follows `drivers/hwmon/it87.c` from the Linux
-kernel.
+GPL-2.0-or-later (see [`LICENSE`](LICENSE)). Super I/O access follows
+`drivers/hwmon/it87.c` from the Linux kernel.
