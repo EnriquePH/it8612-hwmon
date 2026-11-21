@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: >-
+  If you use this driver in research, teaching or other work, please cite it
+  using the metadata below.
+title: "it8612-hwmon: Linux hwmon driver for the ITE IT8612E Super I/O"
+abstract: >-
+  A small read-only Linux kernel module that reads the temperatures and fan
+  speeds of the ITE IT8612E Super I/O (chip ID 0x8612), which no Linux driver
+  supports, through the standard hwmon interface.
+authors:
+  - name: ENERGYCODE
+version: 0.1.0
+date-released: 2026-11-21
+url: https://github.com/EnriquePH/it8612-hwmon
+repository-code: https://github.com/EnriquePH/it8612-hwmon
+license: GPL-2.0-or-later
+keywords:
+  - linux
+  - hwmon
+  - kernel-module
+  - super-io
+  - ite
+  - it8612

@@ -129,7 +129,7 @@ sudo apt install linux-headers-$(uname -r) dkms build-essential
 Build and try it:
 
 ```bash
-make
+make build
 sudo rmmod it87 2>/dev/null   # it87 with force_id would hold the same ports
 sudo insmod ./it8612.ko
 sensors it8612-isa-*
@@ -147,6 +147,14 @@ example the `options it87 force_id=…` line in `/etc/modprobe.d/`).
 
 Uninstall: `sudo make dkms-remove` and delete
 `/etc/modules-load.d/it8612.conf`.
+
+### Development
+
+`make help` lists the targets. `make check` runs `make lint` (kernel coding style
+with `checkpatch.pl`, found in the kernel tree or given with
+`CHECKPATCH=/path/to/linux/scripts/checkpatch.pl`) and `make test` (a build with
+extra warnings, `W=1`, that fails on any warning). The kernel build itself is
+described in `Kbuild`; project settings and targets are in `project.mk`.
 
 ## Module parameters
 

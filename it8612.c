@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * it8612 - read-only hwmon driver for the ITE IT8612E Super I/O (chip ID 0x8612).
+ * it8612 - read-only hwmon driver for the ITE IT8612E Super I/O (ID 0x8612).
  *
  * The IT8612E is not supported by the in-kernel it87 driver. Its environment
  * controller uses the register map of the IT87 family (IT8603E/IT8613E), which
