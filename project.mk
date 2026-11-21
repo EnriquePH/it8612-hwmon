@@ -19,8 +19,10 @@ CLEAN_CMD := $(KBUILD) clean
 LINT_CMD := if [ -n "$(CHECKPATCH)" ]; then \
 	$(CHECKPATCH) --no-tree --strict -f it8612.c; \
 	else echo "checkpatch.pl not found: make lint CHECKPATCH=/path/to/linux/scripts/checkpatch.pl"; exit 1; fi
-# test: no unit tests for a hardware driver; build with extra warnings (W=1) and fail on any warning
-TEST_CMD := out=$$($(KBUILD) W=1 modules 2>&1); echo "$$out"; ! grep -q "warning:" <<<"$$out"
+# test: no unit tests for a hardware driver; build with extra warnings (W=1) and fail on any compiler
+# warning in the source or modpost warning (not on kbuild's notes about the toolchain, e.g. a different gcc)
+WARNING_RE := \.[ch]:[0-9]+:[0-9]+: warning:|WARNING: modpost
+TEST_CMD := out=$$($(KBUILD) W=1 modules 2>&1) || { echo "$$out"; exit 1; }; echo "$$out"; ! grep -Eq '$(WARNING_RE)' <<<"$$out"
 # release: set the version in the source, dkms.conf and here
 VERSION_CMD := sed -i 's/MODULE_VERSION("[^"]*")/MODULE_VERSION("$(VERSION)")/' it8612.c && \
 	sed -i 's/^PACKAGE_VERSION=.*/PACKAGE_VERSION="$(VERSION)"/' dkms.conf && \
