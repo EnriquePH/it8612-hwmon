@@ -159,6 +159,15 @@ echo it8612 | sudo tee /etc/modules-load.d/it8612.conf
 If you used the `it87 force_id` workaround, remove its configuration (for
 example the `options it87 force_id=…` line in `/etc/modprobe.d/`).
 
+Upgrade to a new release (`dkms-install` removes the previous version first),
+then reload the module:
+
+```bash
+git pull
+sudo make dkms-install
+sudo modprobe -r it8612 && sudo modprobe it8612
+```
+
 Uninstall: `sudo make dkms-remove` and delete
 `/etc/modules-load.d/it8612.conf`.
 

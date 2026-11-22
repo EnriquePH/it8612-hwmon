@@ -2,7 +2,7 @@
 # The Makefile (managed by the template) includes it first; any *_CMD set here
 # is what its target runs (empty = not applicable). Extra targets: add "## help".
 
-MODULE_VERSION := 0.1.0
+MODULE_VERSION := 0.2.0
 
 # Kernel to build against (the running one by default)
 KVER ?= $(shell uname -r)
@@ -32,7 +32,12 @@ DKMS_SRC := /usr/src/it8612-$(MODULE_VERSION)
 
 .PHONY: dkms-install dkms-remove
 
-dkms-install: ## Install with DKMS, rebuilt for every new kernel (as root)
+dkms-install: ## Install with DKMS, rebuilt for every new kernel (as root); replaces any other installed version
+	@for v in $$(dkms status -m it8612 2>/dev/null | sed -n 's|^it8612/\([^,:]*\).*|\1|p' | sort -u); do \
+		if [ "$$v" != "$(MODULE_VERSION)" ]; then \
+			echo "Removing it8612 $$v"; dkms remove -m it8612 -v "$$v" --all && rm -rf "/usr/src/it8612-$$v"; \
+		fi; \
+	done
 	mkdir -p $(DKMS_SRC)
 	cp it8612.c Kbuild Makefile project.mk dkms.conf $(DKMS_SRC)/
 	dkms add -m it8612 -v $(MODULE_VERSION)

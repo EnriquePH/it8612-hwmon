@@ -6,11 +6,18 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-22
+
 ### Added
 
 - Continuous integration (GitHub Actions): build, `W=1` and `checkpatch.pl --strict` on Ubuntu, and a `W=1` build
   against the Debian 13 kernel headers, on every push.
 - `CONTRIBUTING.md` (how to report a board) and a Troubleshooting section in the README.
+
+### Changed
+
+- `make dkms-install` removes any other installed version of the module first, so upgrading is one command;
+  the README explains how to upgrade.
 
 ### Fixed
 
@@ -27,5 +34,6 @@ All notable changes to this project are listed here. The format follows
 - Build with `make build` (`make` lists the targets: `lint` runs `checkpatch.pl`, `test` builds with `W=1`); the
   kernel build is described in `Kbuild`.
 
-[Unreleased]: https://github.com/EnriquePH/it8612-hwmon/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/EnriquePH/it8612-hwmon/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/EnriquePH/it8612-hwmon/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/EnriquePH/it8612-hwmon/releases/tag/v0.1.0
