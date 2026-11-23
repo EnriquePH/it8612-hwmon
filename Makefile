@@ -1,6 +1,5 @@
-# Managed by the template (00-CEREBRO, copier) - do not edit.
-# Project settings and extra targets go in project.mk; update with
-# `copier update --trust`. Targets: 01-CONVENCIONES/04-PROYECTOS-Y-REPOS/02-MAKEFILE.md.
+# Managed by the project template - do not edit. Project settings and
+# extra targets go in project.mk; update with `copier update --trust`.
 
 KIND := c-kernel-module
 SHELL := bash

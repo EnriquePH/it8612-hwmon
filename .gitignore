@@ -1,4 +1,4 @@
-# === base (00-CEREBRO/05-PLANTILLAS/01-GITIGNORE/00-base.gitignore) ===
+# === base ===
 
 # Secrets: never in git
 .env
