@@ -6,6 +6,19 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Fan counts are read again if the chip updates the counter between its two byte reads.
+- `force_id` only applies to ITE chips (ID `0x86xx` or `0x87xx`) and logs a warning; a base address of
+  `0xfff8` (unset) is rejected; ignoring an ACPI conflict logs a warning.
+- `read` rejects attributes the driver does not provide; register masks and constants have names; the
+  rpm conversion is a function of its own.
+- CI: `actions/checkout@v5` (Node 24).
+
+### Documentation
+
+- README: what is checked on the HP 2B35 and what is inferred from the IT87 family; Linux 6.4 or later.
+
 ## [0.2.0] - 2026-11-22
 
 ### Added

@@ -13,7 +13,7 @@ jobs:
     name: Ubuntu (runner kernel)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Kernel headers
         run: sudo apt-get update && sudo apt-get install -y "linux-headers-$(uname -r)" build-essential
       - name: Build
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:trixie
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Kernel headers
         run: apt-get update && apt-get install -y linux-headers-amd64 build-essential make
       - name: Build with W=1 (fails on any warning)

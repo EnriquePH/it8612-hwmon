@@ -71,7 +71,9 @@ All in the environment controller, read only:
 | `0x13`, bits 4–6 | Fan 1–3 tachometer enabled | hides disabled fans |
 
 Fan speed is `1350000 / (2 × count)` rpm, as in `it87`; a count of `0xffff`
-means stopped or not connected.
+means stopped or not connected. The count is read low byte first, as in
+`it87`; the driver reads the low byte again afterwards and, if the chip
+updated the counter in between, reads the pair again (up to three times).
 
 Fan control is left alone. On the tested board the BIOS sets all three PWM
 outputs to the chip's automatic mode (SmartGuardian), driven by temperature 3,
@@ -92,6 +94,22 @@ load on all CPU cores and while cooling down:
 | `0x1a:0x0f` | `0x031a` | `0x0318` | `0x031d` | Fan 3, about 850 rpm |
 
 `it87 force_id=0x8603` gives the same values, and so does this driver.
+
+### Checked and inferred
+
+| Item | Status |
+| --- | --- |
+| Chip ID `0x8612`, revision 4, configuration port `0x2e` | Checked on the HP 2B35 |
+| Environment controller: logical device 4, base `0x600`, ports base + 5 / + 6 | Checked |
+| Temperatures 1–3 (`0x29`–`0x2b`) and what they measure on that board | Checked (table above) |
+| Fan 2 and fan 3 tachometers (`0x0e`/`0x19`, `0x0f`/`0x1a`) | Checked |
+| Fan 1 tachometer (`0x0d`/`0x18`) | Inferred: nothing is connected on that board |
+| Bits 4–6 of `0x13` enable the tachometers | Inferred from the IT87 family; consistent with that board |
+| Configuration port `0x4e` and its enter key | Inferred from `it87`; not seen |
+| Rpm formula and the meaning of counts `0` and `0xffff` | Inferred from `it87`; rpm match the table above |
+| Whether the counter can change between its two byte reads | Not known; the driver re-reads to be safe |
+
+Other boards may wire the chip differently: only the HP 2B35 has been tested.
 
 ## What it exposes
 
@@ -133,8 +151,9 @@ find the controller (enter key, logical device select, exit), the same one
 
 ## Build and install
 
-Requirements: kernel headers and, for automatic rebuilds on kernel updates,
-DKMS. On Debian/Ubuntu:
+Requirements: Linux 6.4 or later (the driver uses the constant hwmon channel
+information of 6.4), its headers and, for automatic rebuilds on kernel
+updates, DKMS. On Debian/Ubuntu:
 
 ```bash
 sudo apt install linux-headers-$(uname -r) dkms build-essential
@@ -183,8 +202,8 @@ described in `Kbuild`; project settings and targets are in `project.mk`.
 
 | Parameter | Default | Use |
 | --- | --- | --- |
-| `force_id` | 0 | Treat another ITE chip ID as an IT8612E (testing only) |
-| `ignore_resource_conflict` | false | Load even if ACPI claims the controller's ports |
+| `force_id` | 0 | Treat another ITE chip (ID `0x86xx` or `0x87xx`) as an IT8612E, with a warning in the log (testing only) |
+| `ignore_resource_conflict` | false | Load even if ACPI claims the controller's ports, with a warning in the log |
 
 ## Troubleshooting
 
