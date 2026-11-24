@@ -383,4 +383,4 @@ module_exit(it8612_exit);
 
 MODULE_DESCRIPTION("Read-only hwmon driver for the ITE IT8612E Super I/O");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.2.0");
+MODULE_VERSION("0.3.0");
