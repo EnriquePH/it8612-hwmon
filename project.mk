@@ -2,7 +2,7 @@
 # The Makefile (managed by the template) includes it first; any *_CMD set here
 # is what its target runs (empty = not applicable). Extra targets: add "## help".
 
-MODULE_VERSION := 0.3.0
+MODULE_VERSION := 0.3.1
 
 # Kernel to build against (the running one by default)
 KVER ?= $(shell uname -r)

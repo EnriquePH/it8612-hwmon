@@ -9,8 +9,8 @@ abstract: >-
   supports, through the standard hwmon interface.
 authors:
   - name: ENERGYCODE
-version: 0.3.0
-date-released: 2026-11-24
+version: 0.3.1
+date-released: 2026-11-27
 url: https://github.com/EnriquePH/it8612-hwmon
 repository-code: https://github.com/EnriquePH/it8612-hwmon
 license: GPL-2.0-or-later
