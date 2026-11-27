@@ -153,11 +153,17 @@ find the controller (enter key, logical device select, exit), the same one
 
 Requirements: Linux 6.4 or later (the driver uses the constant hwmon channel
 information of 6.4), its headers and, for automatic rebuilds on kernel
-updates, DKMS. On Debian/Ubuntu:
+updates, DKMS. Install the headers *metapackage*, which follows every kernel
+update, not the headers of one version (`linux-headers-$(uname -r)`): with
+those, the next kernel has no headers, DKMS cannot rebuild the module and the
+fans disappear from `sensors` after the reboot. On Debian:
 
 ```bash
-sudo apt install linux-headers-$(uname -r) dkms build-essential
+sudo apt install linux-headers-amd64 dkms build-essential
 ```
+
+On Ubuntu, `linux-headers-generic` instead of `linux-headers-amd64`.
+`sudo make dkms-install` warns if no headers metapackage is installed.
 
 Build and try it:
 

@@ -42,6 +42,11 @@ dkms-install: ## Install with DKMS, rebuilt for every new kernel (as root); repl
 	cp it8612.c Kbuild Makefile project.mk dkms.conf $(DKMS_SRC)/
 	dkms add -m it8612 -v $(MODULE_VERSION)
 	dkms install -m it8612 -v $(MODULE_VERSION)
+	@if command -v dpkg-query >/dev/null && ! dpkg-query -W -f='$${db:Status-Abbrev} $${Package}\n' 'linux-headers-*' 2>/dev/null \
+		| awk '$$1 == "ii" && $$2 !~ /[0-9]+\.[0-9]+/ { found = 1 } END { exit !found }'; then \
+		echo "WARNING: no kernel headers metapackage (linux-headers-amd64, linux-headers-generic...) is installed:"; \
+		echo "         DKMS will not rebuild it8612 for the next kernel. Install the one for your distribution."; \
+	fi
 
 dkms-remove: ## Remove the DKMS module (as root)
 	dkms remove -m it8612 -v $(MODULE_VERSION) --all

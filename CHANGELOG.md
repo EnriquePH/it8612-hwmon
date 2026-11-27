@@ -6,6 +6,12 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- README: install the kernel headers metapackage (`linux-headers-amd64`, `linux-headers-generic`), not
+  `linux-headers-$(uname -r)`, so that DKMS can rebuild the module for the next kernel.
+- `make dkms-install` warns if no kernel headers metapackage is installed.
+
 ## [0.3.0] - 2026-11-24
 
 ### Changed
